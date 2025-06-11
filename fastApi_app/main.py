@@ -40,8 +40,18 @@ async def login_page(request:Request):
 async def login(request : Request ,username: str = Form(...), password: str = Form(...)):
     if username in user and user[username]==password:
         response = RedirectResponse(url='/dashboard', status_code=302)
+        response.set_cookie("Authorization", value="Bearer Token", httponly=True)
         return response
     return templates.TemplateResponse('login.html', {"request":request , "error":"Invalid username and password"})
+
+
+@app.get('/logout')
+async def logout():
+    response = RedirectResponse(url='login')
+    response.delete_cookie("Authorization")
+    return response
+
+
 
 # Montez l'application Dash sous le chemin /dashboard
 app.mount('/dashboard', WSGIMiddleware(app_dash.server))
