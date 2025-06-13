@@ -7,6 +7,7 @@ from fastapi.middleware.wsgi import WSGIMiddleware
 from fastapi.templating import Jinja2Templates
 import uvicorn
 from dash_app import app as app_dash
+import requests
 
 app = FastAPI()
 
@@ -27,9 +28,34 @@ templates = Jinja2Templates(directory= templates_dir)
 user = {"admin":"123"}
 
 
+EXTERNAL_API_URL ="http://localhost:8000/info"
+
+def get_external_info():
+    try:
+        response = requests.get(EXTERNAL_API_URL)
+        response.raise_for_status()
+        return response.json()
+    except Exception as e: 
+        print("error de api extern:",e)
+        return{
+            "date":"N/A",
+            "time":"N/A",
+            "weather":{
+                "city":"N/A",
+                "temperature":"N/A",
+                "description":"N/A"
+            }
+        } 
+ 
+
+
+
+
 @app.get('/')
 async def home_page(request:Request):
-    return templates.TemplateResponse("home.html", {"request":request})
+    information = get_external_info()
+    print("information:",information)
+    return templates.TemplateResponse("home.html", {"request":request,"info":information })
 
 @app.get('/login')
 async def login_page(request:Request):
